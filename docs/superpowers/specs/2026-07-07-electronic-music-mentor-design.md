@@ -22,9 +22,10 @@ Concretely, the mentor:
 ## Decided Constraints (non-negotiable)
 
 - No live/OSC/MCP connection to an Ableton set. All output is files or text imported manually (MIDI files, chord charts, notation, written suggestions).
-- Knowledge base is original writing informed by public documentation and general music-production knowledge — not reproduced text from copyrighted books.
+- Knowledge base is original writing informed by public documentation, books, and online reference material — not reproduced text from copyrighted sources. The music-theory foundations, genre specifics, and production knowledge are built through active research of authoritative references (theory texts, production books, documented genre histories, technical references) and then rewritten in the project's own words and structure. Citations/attributions to sources are kept; verbatim copying is not.
 - Target output formats: standard `.mid` files (via music21/mido or similar), plus plain-text/notation descriptions (note names, roman numerals, ABC).
 - Assumes the user already knows their way around a DAW — no over-explaining basics.
+- Skills must work with opencode. The system is built as opencode skills (using the opencode skill mechanism — see the project's `skills/` conventions and the `skill` tool), not as a standalone application. This constrains how the architecture maps to implementation: each skill is an opencode skill with its own directory and SKILL.md; substrates are shared resources skills read; the mentor orchestrator is realized as opencode-native behavior (skills invoke each other and the orchestrator logic, rather than a separate runtime).
 
 ## Resolved Design Decisions
 
@@ -94,6 +95,7 @@ Three layers with clear seams:
 │  Each: own knowledge + workflow + output contract    │
 ├─────────────────────────────────────────────────────┤
 │  Substrates (shared resources, not skills)           │
+│  theory (skills read directly)                       │
 │  genre-profiles (skills read directly)               │
 │  memory (orchestrator owns read/write)               │
 └─────────────────────────────────────────────────────┘
@@ -112,6 +114,19 @@ Three layers with clear seams:
    - Writes memory updates.
 
 Independence guarantee: skills can run without the orchestrator for domain testing — they receive context as input and produce artifacts + observations as output.
+
+### Mapping to opencode
+
+The system is implemented as opencode skills, not as a standalone application. Concretely:
+
+- **Each skill is an opencode skill** — a directory under the project's `skills/` with its own `SKILL.md` describing when to invoke it, the workflow it follows, and its output contract. Skills are invoked via the opencode `skill` tool or by being mentioned in conversation; the user picks a skill to start a task (mode C).
+- **Substrates are files skills read** — `theory` and `genre-profiles` live as documented files (e.g., Markdown or structured files) under a shared location (e.g., `knowledge/`), which skills read as part of their workflow. They are not skills and not runtime services; they are knowledge the skills consult.
+- **`memory` is a user-data file** — stored under a user-specific location (e.g., `~/.electronic-music-mentor/memory` or a project-local equivalent), read and written by the orchestrator logic. The format is an implementation concern (deferred to the plan), but it is a file the system owns, not an external database.
+- **The Mentor Orchestrator is opencode-native behavior, not a separate runtime.** It is realized as: (a) shared guidance each skill's `SKILL.md` references (the mentor voice, guards, and post-phase behaviors are documented once and every skill's workflow points to them), and (b) skills invoking each other when the mode-C redirect or cross-skill handoff applies (`develop-track` calls `arrangement`; `critique` hands off to `bass`). There is no separate orchestrator process; the mentor behaviors are distributed across the skills' workflows and the shared guidance they all follow.
+- **MIDI generation uses Python libraries** (music21, mido, or similar) invoked as scripts by the skills' workflows. A skill that produces a `.mid` file runs a script in its workflow; the user imports the file into their DAW manually.
+- **No MCP server, no OSC, no live DAW connection.** All output is files and text. The user is the bridge to the DAW.
+
+Implication for skill independence: because the orchestrator is distributed (shared guidance + inter-skill invocation) rather than a wrapper process, the "independence guarantee" from the interaction contract is realized as: each skill's `SKILL.md` documents the full workflow, including the pre/post behaviors it is responsible for applying. Skills are independently invokable and independently testable; the mentor consistency comes from every skill pointing at the same shared guidance, not from a central process enforcing it.
 
 ## Skills — Purposes, Boundaries, Output Contracts
 
@@ -188,6 +203,16 @@ A flag on domain skill invocations: `just-give-it-to-me`. Skips woven teaching a
 
 ## Substrates
 
+### `theory`
+
+Purpose: Shared knowledge resource containing the music-theory foundations — harmony, voice-leading, rhythm, form, counterpoint as they apply to electronic music. Consumed by `harmony`, `bass`, `melody`, `rhythm`, `arrangement`, and indirectly by `critique` and `diagnose` (which need theory to assess domain-specific issues).
+
+Scope: The foundational concepts the skills reason with — interval/chord construction, diatonic and chromatic harmony, voice-leading rules and when to break them, rhythmic subdivision and groove, phrase and form, tension/release mechanics, the specific ways these play differently in electronic music (e.g., bass-as-harmony, static harmonic loops, loop-based form). This is the substrate that lets a skill say *why* something works, not just *that* it does.
+
+Ownership: Substrate, not a skill. Skills read it directly. Has its own maintenance lifecycle separate from skill development. The theory substrate and the genre-profiles substrate are distinct: theory is the general musical vocabulary; genre-profiles are the genre-specific application of it. A skill reasoning about a dub techno bassline reads `theory` for voice-leading principles and `genre-profiles` for dub techno's specific harmonic conventions.
+
+Sourcing: Same as genre-profiles — original writing produced through active research of authoritative theory texts, production books, and credible online references. Sources studied, synthesized, rewritten in the project's own words. Citations kept; verbatim copying of copyrighted text is not. Grows over time; under-profiled topics are flagged rather than improvised shallowly.
+
 ### `genre-profiles`
 
 Purpose: Shared knowledge resource every skill reads. Encodes the spirit of electronic music genres — not just surface markers.
@@ -204,7 +229,7 @@ Each genre profile contains, per genre:
 
 Ownership: Substrate, not a skill. Skills read it directly. It has its own maintenance lifecycle separate from skill development, and its own quality bar: the "spirit" and "common failure modes" fields are where content quality matters most. Shallow profiles directly cause the genre-stereotype-enforcement risk.
 
-Sourcing: Original writing informed by public documentation and general production knowledge — no reproduced copyrighted text. Profiles grow over time; the mentor can note when a genre is under-profiled and flag it rather than improvising shallow guidance.
+Sourcing: Original writing produced through active research of authoritative references — theory texts, production books, documented genre histories, technical references, and credible online material. Sources are studied, synthesized, and rewritten in the project's own words and structure. Citations/attributions to sources are kept; verbatim copying of copyrighted text is not. Profiles grow over time; the mentor can note when a genre is under-profiled and flag it rather than improvising shallow guidance.
 
 ### `memory`
 
@@ -368,7 +393,9 @@ These were flagged during design but deliberately left for the implementation pl
 - The exact value of "N sessions" in the memory decay rules (how many sessions of absence before a pattern ages to `former-habit`).
 - The exact value of "N sessions" in the escape-hatch ratio threshold.
 - The concrete file format for memory storage (JSON, SQLite, etc. — an implementation concern, not a design concern).
-- The concrete file format and storage for genre-profiles.
+- The concrete file format and storage for `theory` and `genre-profiles` substrates.
 - The concrete file format for lesson artifacts in the lessons library.
 - The MIDI output conventions (which note mappings for percussion, how chord stabs are rendered, etc.) — to be decided per-skill during implementation.
 - The exact redirect heuristics (when does recurrence + escape-hatch ratio trigger a redirect suggestion vs. just a memory recall).
+- The knowledge-building research process: which authoritative sources to consult for `theory` (texts, production books, online references), how to structure the research-and-synthesis workflow, and how to attribute without reproducing copyrighted text. This is a first-class implementation concern — the substrates' content quality is the foundation of the whole system's quality.
+- The shared guidance document(s) that encode the mentor voice, guards, and post-phase behaviors that every opencode skill references — their exact location, structure, and how skills point at them.
