@@ -11,11 +11,11 @@ Every skill follows the shared mentor voice, guards, and post-phase behaviors de
 ### Domain skills (generate + critique within one domain)
 
 - `bass` — basslines, sub, low-end voice-leading
-- `melody` — leads, motifs, top-line development (planned)
-- `rhythm` — patterns, grooves, percussion content (planned)
-- `harmony` — chords, progressions, voicings, tonality (planned)
-- `sound-design` — conceptual sound-design mentoring, synthesis reasoning (planned)
-- `arrangement` — section structure, energy arc, transitions (planned)
+- `melody` — leads, motifs, top-line development
+- `rhythm` — patterns, grooves, percussion content
+- `harmony` — chords, progressions, voicings, tonality
+- `sound-design` — conceptual sound-design mentoring, synthesis reasoning
+- `arrangement` — section structure, energy arc, transitions
 
 ### Track-construction skill
 
