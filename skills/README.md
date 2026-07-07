@@ -19,18 +19,18 @@ Every skill follows the shared mentor voice, guards, and post-phase behaviors de
 
 ### Track-construction skill
 
-- `develop-track` — coordinates across domains to build a whole track (planned)
+- `develop-track` — coordinates across domains to build a whole track
 
 ### Cross-domain act skills
 
-- `critique` — comprehensive cross-domain sweep (planned)
-- `diagnose` — targeted hypothesis-driven troubleshooting (planned)
-- `ear-train` — deliberate ear-training with check-back workflow (planned)
+- `critique` — comprehensive cross-domain sweep
+- `diagnose` — targeted hypothesis-driven troubleshooting
+- `ear-train` — deliberate ear-training with check-back workflow
 
 ### Development skills (about you, not the track)
 
-- `break-a-habit` — explicit work on a flagged habit across sessions (planned)
-- `review-development` — reads memory, reflects development, recommends next focus (planned)
+- `break-a-habit` — explicit work on a flagged habit across sessions
+- `review-development` — reads memory, reflects development, recommends next focus
 
 ## Substrates (not skills)
 
