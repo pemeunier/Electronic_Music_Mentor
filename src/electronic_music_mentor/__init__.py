@@ -1,0 +1,1 @@
+"""Electronic Music Mentor — AI mentor skills for electronic music producers."""
