@@ -43,3 +43,21 @@ def test_write_bassline_respects_velocity(tmp_path):
     ]
     assert note_ons[0].velocity == 80
     assert note_ons[1].velocity == 110
+
+
+def test_write_chords_creates_overlapping_notes(tmp_path):
+    writer = MidWriter()
+    # Two chords: Cmaj7 (C3 E3 G3 B3) and Fmaj7 (F3 A3 C4 E4), each 2 beats
+    chords = [
+        {"notes": [60, 64, 67, 71], "length_beats": 2.0, "velocity": 90},
+        {"notes": [65, 69, 72, 76], "length_beats": 2.0, "velocity": 90},
+    ]
+    out_path = tmp_path / "chords.mid"
+    writer.write_chords(chords, out_path, bpm=124)
+    mid = mido.MidiFile(out_path)
+    note_ons = [
+        msg for track in mid.tracks
+        for msg in track
+        if msg.type == "note_on" and msg.velocity > 0
+    ]
+    assert len(note_ons) == 8  # 4 notes per chord * 2 chords

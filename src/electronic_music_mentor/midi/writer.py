@@ -44,3 +44,39 @@ class MidWriter:
             track.append(Message("note_off", note=note, velocity=0, channel=channel, time=length))
 
         mid.save(out_path)
+
+    def write_chords(
+        self,
+        chords: list[dict],
+        out_path,
+        bpm: int = 124,
+        channel: int = 0,
+        program: int = 4,  # 4 = Electric Piano 1
+    ) -> None:
+        """Write chord stabs/pads to a .mid file.
+
+        Each chord is a dict with keys:
+        - notes: list of MIDI note numbers
+        - length_beats: duration in beats
+        - velocity: 0-127
+        """
+        mid = MidiFile(ticks_per_beat=self.ticks_per_beat)
+        track = MidiTrack()
+        mid.tracks.append(track)
+
+        tempo = bpm2tempo(bpm)
+        track.append(MetaMessage("set_tempo", tempo=tempo))
+        track.append(Message("program_change", program=program, channel=channel))
+
+        for chord_spec in chords:
+            chord_notes = chord_spec["notes"]
+            length = int(chord_spec["length_beats"] * self.ticks_per_beat)
+            velocity = chord_spec.get("velocity", 90)
+            # All notes on simultaneously
+            for note in chord_notes:
+                track.append(Message("note_on", note=note, velocity=velocity, channel=channel, time=0))
+            # All notes off after the length
+            for i, note in enumerate(chord_notes):
+                track.append(Message("note_off", note=note, velocity=0, channel=channel, time=length if i == 0 else 0))
+
+        mid.save(out_path)
