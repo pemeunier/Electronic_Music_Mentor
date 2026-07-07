@@ -2,22 +2,21 @@
 
 One file per electronic music genre, encoding the spirit of each genre. Consumed by all domain skills.
 
-## Planned genres (content to be built in a later plan)
+## Documents
 
-- Dub Techno
-- Deep House
-- Detroit Techno
-- Jungle / Drum & Bass
-- UK Garage
-- Ambient
-- Minimal Techno
-- Electro
-- IDM / Braindance
-- (others as the system grows)
+- [Dub Techno](dub-techno.md) — hypnotic immersion through repetition and slow change
+- [Deep House](deep-house.md) — warmth and soul through groove and harmony
+- [Detroit Techno](detroit-techno.md) — mechanical precision with emotive depth
+- [Jungle / Drum & Bass](jungle-drum-and-bass.md) — breakbeat energy and sub-bass weight
+- [UK Garage](uk-garage.md) — bouncy, forward-leaning swing and broken patterns
+- [Ambient](ambient.md) — atmosphere and sustained mood over rhythm
+- [Minimal Techno](minimal-techno.md) — depth through reduction; each element matters more
+- [Electro](electro.md) — robotic funk through 808 programming and vocoder
+- [IDM / Braindance](idm-braindance.md) — exploration and intricacy over groove and convention
 
 ## Format
 
-Each genre profile is a Markdown file with front-matter fields validated by `electronic_music_mentor.substrates.validator.validate_genre_profile`:
+Each genre profile is a markdown file with YAML front-matter validated by `electronic_music_mentor.substrates.validator.validate_genre_profile`, loaded by `electronic_music_mentor.loader.load_genre_profile`:
 - `name`
 - `tempo_range` (dict with `min`, `max`, `feel`)
 - `rhythmic_conventions` (list)
