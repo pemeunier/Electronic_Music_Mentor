@@ -10,7 +10,7 @@ from pathlib import Path
 
 import yaml
 
-from .validator import validate_theory_document, ValidationError
+from .validator import validate_theory_document, validate_genre_profile, ValidationError
 
 
 class LoadError(Exception):
@@ -50,6 +50,43 @@ def load_theory_document(path: Path) -> dict:
 
     try:
         validate_theory_document(front_matter)
+    except ValidationError as e:
+        raise LoadError(f"Validation failed for {path}: {e}") from e
+
+    front_matter["body"] = body
+    return front_matter
+
+
+def load_genre_profile(path: Path) -> dict:
+    """Load a genre profile from a markdown file with YAML front-matter.
+
+    Returns a dict with the front-matter fields plus a 'body' key containing
+    the prose content (everything after the front-matter).
+
+    Raises LoadError if the file has no front-matter, fails to parse, or
+    fails validation.
+    """
+    path = Path(path)
+    text = path.read_text()
+
+    match = FRONT_MATTER_RE.match(text)
+    if not match:
+        raise LoadError(
+            f"Could not find YAML front-matter in {path}. "
+            "Genre profiles must start with '---' delimiters."
+        )
+
+    yaml_text, body = match.groups()
+    try:
+        front_matter = yaml.safe_load(yaml_text)
+    except yaml.YAMLError as e:
+        raise LoadError(f"Failed to parse YAML front-matter in {path}: {e}") from e
+
+    if not isinstance(front_matter, dict):
+        raise LoadError(f"Front-matter in {path} is not a dict (got {type(front_matter).__name__})")
+
+    try:
+        validate_genre_profile(front_matter)
     except ValidationError as e:
         raise LoadError(f"Validation failed for {path}: {e}") from e
 

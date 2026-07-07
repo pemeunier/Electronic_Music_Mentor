@@ -89,3 +89,114 @@ Body.
     doc = load_theory_document(path)
     assert "## Sources" in doc["body"]
     assert "Some Book by Some Author" in doc["body"]
+
+
+from electronic_music_mentor.substrates.loader import load_genre_profile
+
+
+def test_load_valid_genre_profile(tmp_path):
+    content = """---
+name: Dub Techno
+tempo_range:
+  min: 120
+  max: 130
+  feel: "hypnotic, patient"
+rhythmic_conventions:
+  - four-on-the-floor kick
+  - offbeat hats
+  - sparse percussion
+harmonic_conventions:
+  - static harmony
+  - minor tonality
+  - chord stabs with long reverb
+textural_sonic_conventions:
+  - haze
+  - reverb-drenched
+  - filter movement
+arrangement_conventions:
+  - long builds
+  - atmospheric breakdowns
+  - minimal section changes
+spirit: >
+  Hypnotic immersion through repetition and slow change. Good examples sustain a single
+  idea with patience; lazy examples just repeat a loop without evolution.
+common_failure_modes:
+  - no evolution
+  - static loop without filter movement
+  - overcrowded mid
+---
+
+# Dub Techno
+
+Some prose body here.
+
+## Sources
+
+- Mark Jamieson, electronic music production literature
+"""
+    path = tmp_path / "dub-techno.md"
+    path.write_text(content)
+    profile = load_genre_profile(path)
+    assert profile["name"] == "Dub Techno"
+    assert profile["tempo_range"]["min"] == 120
+    assert profile["tempo_range"]["max"] == 130
+    assert len(profile["rhythmic_conventions"]) == 3
+    assert isinstance(profile["harmonic_conventions"], list)
+    assert len(profile["spirit"]) >= 80
+    assert profile["body"].startswith("# Dub Techno")
+    assert "## Sources" in profile["body"]
+
+
+def test_load_genre_profile_missing_fields_raises(tmp_path):
+    content = """---
+name: Dub Techno
+tempo_range:
+  min: 120
+  max: 130
+  feel: "hypnotic"
+---
+
+# Dub Techno
+
+Body.
+"""
+    path = tmp_path / "dub-techno.md"
+    path.write_text(content)
+    with pytest.raises(LoadError) as exc_info:
+        load_genre_profile(path)
+    assert "missing" in str(exc_info.value).lower() or "rhythmic" in str(exc_info.value).lower()
+
+
+def test_load_genre_profile_spirit_too_short_raises(tmp_path):
+    content = """---
+name: Test Genre
+tempo_range:
+  min: 120
+  max: 130
+  feel: "test"
+rhythmic_conventions:
+  - kick
+harmonic_conventions:
+  - minor
+textural_sonic_conventions:
+  - haze
+arrangement_conventions:
+  - builds
+spirit: "Too short."
+common_failure_modes:
+  - boring
+---
+
+# Test Genre
+
+Body.
+
+## Sources
+
+- Some Source
+"""
+    path = tmp_path / "test.md"
+    path.write_text(content)
+    with pytest.raises(LoadError) as exc_info:
+        load_genre_profile(path)
+    assert "spirit" in str(exc_info.value).lower()
