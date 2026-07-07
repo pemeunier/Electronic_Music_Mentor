@@ -61,3 +61,30 @@ def test_write_chords_creates_overlapping_notes(tmp_path):
         if msg.type == "note_on" and msg.velocity > 0
     ]
     assert len(note_ons) == 8  # 4 notes per chord * 2 chords
+
+
+def test_write_percussion_uses_channel_9(tmp_path):
+    writer = MidWriter()
+    # A simple 4-on-the-floor kick: kick on every beat, hat on offbeats
+    hits = [
+        {"note": 36, "position_beats": 0.0, "length_beats": 0.5, "velocity": 110},  # kick
+        {"note": 42, "position_beats": 0.5, "length_beats": 0.25, "velocity": 80},  # hat
+        {"note": 36, "position_beats": 1.0, "length_beats": 0.5, "velocity": 110},  # kick
+        {"note": 42, "position_beats": 1.5, "length_beats": 0.25, "velocity": 80},  # hat
+        {"note": 36, "position_beats": 2.0, "length_beats": 0.5, "velocity": 110},  # kick
+        {"note": 42, "position_beats": 2.5, "length_beats": 0.25, "velocity": 80},  # hat
+        {"note": 36, "position_beats": 3.0, "length_beats": 0.5, "velocity": 110},  # kick
+        {"note": 42, "position_beats": 3.5, "length_beats": 0.25, "velocity": 80},  # hat
+    ]
+    out_path = tmp_path / "percussion.mid"
+    writer.write_percussion(hits, out_path, bpm=124)
+    mid = mido.MidiFile(out_path)
+    drum_notes = [
+        msg for track in mid.tracks
+        for msg in track
+        if msg.type == "note_on" and msg.velocity > 0
+    ]
+    assert len(drum_notes) == 8
+    # All drum notes should be on channel 9 (GM drum channel)
+    for msg in drum_notes:
+        assert msg.channel == 9

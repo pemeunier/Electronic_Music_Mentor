@@ -80,3 +80,42 @@ class MidWriter:
                 track.append(Message("note_off", note=note, velocity=0, channel=channel, time=length if i == 0 else 0))
 
         mid.save(out_path)
+
+    def write_percussion(
+        self,
+        hits: list[dict],
+        out_path,
+        bpm: int = 124,
+    ) -> None:
+        """Write a percussion pattern to a .mid file on GM channel 9 (drums).
+
+        Each hit is a dict with keys:
+        - note: GM percussion note number (36 = kick, 42 = closed hat, etc.)
+        - position_beats: when in the bar the hit occurs (0.0 = beat 1)
+        - length_beats: duration
+        - velocity: 0-127
+
+        Hits must be sorted by position_beats before calling.
+        """
+        mid = MidiFile(ticks_per_beat=self.ticks_per_beat)
+        track = MidiTrack()
+        mid.tracks.append(track)
+
+        tempo = bpm2tempo(bpm)
+        track.append(MetaMessage("set_tempo", tempo=tempo))
+        track.append(Message("program_change", program=0, channel=9))
+
+        sorted_hits = sorted(hits, key=lambda h: h["position_beats"])
+        cumulative_beats = 0.0
+
+        for hit in sorted_hits:
+            position = hit["position_beats"]
+            length = int(hit["length_beats"] * self.ticks_per_beat)
+            velocity = hit.get("velocity", 100)
+            note = hit["note"]
+            delta = int((position - cumulative_beats) * self.ticks_per_beat)
+            track.append(Message("note_on", note=note, velocity=velocity, channel=9, time=max(0, delta)))
+            track.append(Message("note_off", note=note, velocity=0, channel=9, time=length))
+            cumulative_beats = position + hit["length_beats"]
+
+        mid.save(out_path)
