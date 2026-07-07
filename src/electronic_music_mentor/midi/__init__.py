@@ -1,0 +1,1 @@
+"""MIDI generation helpers for Electronic Music Mentor skills."""
