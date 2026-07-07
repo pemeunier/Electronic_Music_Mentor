@@ -69,3 +69,40 @@ def test_persist_and_reload(tmp_path):
     store2.load()
     recalled = store2.recall(domains=["arrangement"])
     assert len(recalled) == 1
+
+
+def test_decay_ages_pattern_to_former_habit_after_threshold(tmp_path):
+    store = MemoryStore(tmp_path / "memory.json")
+    # Sessions 1 and 2 establish a pattern
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=1, source="declared")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=2, source="declared")
+    # Session 6 is 4 sessions later (threshold = 3)
+    decayed = store.decay(current_session=6, absence_threshold=3)
+    assert len(decayed) == 1
+    assert decayed[0].state == LifecycleState.FORMER_HABIT
+
+
+def test_decay_does_not_age_recent_patterns(tmp_path):
+    store = MemoryStore(tmp_path / "memory.json")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=1, source="declared")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=2, source="declared")
+    # Session 3 is only 1 session later
+    decayed = store.decay(current_session=3, absence_threshold=3)
+    assert len(decayed) == 0
+
+
+def test_decay_does_not_age_noticed_once(tmp_path):
+    store = MemoryStore(tmp_path / "memory.json")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=1, source="declared")
+    decayed = store.decay(current_session=10, absence_threshold=3)
+    assert len(decayed) == 0  # noticed-once doesn't decay (it just isn't recalled strongly)
+
+
+def test_former_habit_relapse_returns_to_pattern_on_declare(tmp_path):
+    store = MemoryStore(tmp_path / "memory.json")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=1, source="declared")
+    store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=2, source="declared")
+    store.decay(current_session=6, absence_threshold=3)
+    # Relapse at session 7
+    entry = store.declare(content="tends to overcrowd the low-mid", domains=["arrangement"], session=7, source="declared")
+    assert entry.state == LifecycleState.PATTERN
