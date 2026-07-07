@@ -2,20 +2,20 @@
 
 Music-theory foundations as they apply to electronic music. Consumed by the `harmony`, `bass`, `melody`, `rhythm`, and `arrangement` skills.
 
-## Planned topics (content to be built in a later plan)
+## Documents
 
-- Voice-leading (general principles + electronic-music specifics)
-- Diatonic harmony (major/minor, common progressions)
-- Chromatic harmony (borrowed chords, secondary dominants, modulation)
-- Bass-as-harmony (when bass carries the harmony in electronic music)
-- Static harmony (loops, ostinati, minimal harmonic change)
-- Rhythmic subdivision and groove (sixteenth-note grids, swing, pocket)
-- Phrase and form (motif, repetition, variation, section roles)
-- Tension and release (harmonic, rhythmic, textural)
+- [Voice-leading](voice-leading.md) — smooth chord connection, with electronic-music specifics on bass-as-harmony and register spacing
+- [Diatonic harmony](diatonic-harmony.md) — the seven diatonic chords, common progressions, and how electronic genres use them
+- [Chromatic harmony](chromatic-harmony.md) — borrowed chords, secondary dominants, modulation, and their use in electronic music
+- [Bass-as-harmony](bass-as-harmony.md) — when the bass carries the harmonic identity, the defining approach in many electronic genres
+- [Static harmony](static-harmony.md) — pedal points and two-chord loops, driving through rhythm and texture
+- [Rhythmic subdivision and groove](rhythmic-subdivision.md) — grids, swing, pocket, velocity, and groove signatures
+- [Phrase and form](phrase-and-form.md) — motifs, repetition, variation, additive form, and energy arcs
+- [Tension and release](tension-and-release.md) — harmonic, rhythmic, and textural tension; the build-drop
 
 ## Format
 
-Each theory document is a Markdown file with front-matter fields validated by `electronic_music_mentor.substrates.validator.validate_theory_document`:
+Each theory document is a markdown file with YAML front-matter validated by `electronic_music_mentor.substrates.validator.validate_theory_document`, loaded by `electronic_music_mentor.substrates.loader.load_theory_document`:
 - `topic`
 - `summary`
 - `principles` (list)
