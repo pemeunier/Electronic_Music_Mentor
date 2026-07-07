@@ -1,0 +1,1 @@
+"""Memory store for the Electronic Music Mentor."""
